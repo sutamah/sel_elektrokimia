@@ -1,0 +1,1807 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>⚡ Elektrokimia Millionaire · Kelas XII</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            user-select: none;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            background: radial-gradient(ellipse at top, #0a1a35 0%, #050a18 60%, #000000 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            padding: 10px 8px 20px;
+            margin: 0;
+            overflow-x: hidden;
+        }
+
+        .app-container {
+            max-width: 520px;
+            width: 100%;
+            background: linear-gradient(160deg, rgba(15, 30, 60, 0.95), rgba(8, 15, 30, 0.98));
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border-radius: 28px;
+            padding: 16px 14px 20px;
+            box-shadow: 0 20px 60px rgba(0, 100, 255, 0.15),
+                        0 0 0 2px rgba(80, 160, 255, 0.2),
+                        inset 0 0 60px rgba(30, 80, 180, 0.08);
+            border: 1px solid rgba(100, 180, 255, 0.25);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .app-container::before {
+            content: '';
+            position: absolute;
+            top: -50%; left: -50%;
+            width: 200%; height: 200%;
+            background: radial-gradient(circle at 30% 20%, rgba(80, 160, 255, 0.08), transparent 40%);
+            pointer-events: none;
+            animation: pulseGlow 8s ease-in-out infinite;
+        }
+
+        @keyframes pulseGlow {
+            0%, 100% { opacity: 0.6; }
+            50% { opacity: 1; }
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 12px;
+            position: relative;
+            z-index: 2;
+        }
+
+        .header h1 {
+            font-size: 1.25rem;
+            color: #ffd966;
+            text-shadow: 0 0 15px #ffb800, 0 2px 4px black;
+            letter-spacing: 1px;
+            font-weight: 800;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+        }
+
+        .header .sub {
+            font-size: 0.7rem;
+            color: #6fb0e0;
+            letter-spacing: 2px;
+            margin-top: 3px;
+            font-weight: 600;
+        }
+
+        .top-bar {
+            display: flex;
+            justify-content: space-between;
+            gap: 6px;
+            margin-bottom: 10px;
+            position: relative;
+            z-index: 2;
+        }
+
+        .info-chip {
+            background: linear-gradient(135deg, #142850, #1e3a6e);
+            border: 1px solid #3d7fd4;
+            border-radius: 24px;
+            padding: 6px 8px;
+            font-size: 0.65rem;
+            color: #b8e0ff;
+            font-weight: 700;
+            text-align: center;
+            flex: 1;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+            letter-spacing: 0.3px;
+        }
+
+        .info-chip span {
+            display: block;
+            font-size: 0.55rem;
+            color: #6fa8d4;
+            font-weight: 500;
+            margin-bottom: 1px;
+        }
+
+        .info-chip b {
+            color: #ffd966;
+            font-size: 0.9rem;
+            text-shadow: 0 0 8px #ffb800;
+        }
+
+        .prize-ladder {
+            background: linear-gradient(180deg, #0d1730, #0a1228);
+            border: 1px solid #2a4a80;
+            border-radius: 14px;
+            padding: 6px 8px;
+            margin-bottom: 10px;
+            max-height: 100px;
+            overflow-y: auto;
+            scrollbar-width: thin;
+            scrollbar-color: #3d7fd4 #0a1228;
+            position: relative;
+            z-index: 2;
+        }
+
+        .prize-ladder::-webkit-scrollbar { width: 4px; }
+        .prize-ladder::-webkit-scrollbar-thumb { background: #3d7fd4; border-radius: 4px; }
+
+        .prize-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 2px 8px;
+            border-radius: 8px;
+            font-size: 0.68rem;
+            color: #7a9cc4;
+            font-weight: 600;
+            transition: all 0.2s;
+            margin-bottom: 1px;
+        }
+
+        .prize-row.current {
+            background: linear-gradient(90deg, #ffb800, #ff8c00);
+            color: #1a1a1a;
+            font-weight: 800;
+            box-shadow: 0 0 15px rgba(255, 184, 0, 0.6);
+            transform: scale(1.02);
+        }
+
+        .prize-row.cleared { color: #4dd47d; }
+        .prize-row .num { font-weight: 800; min-width: 20px; }
+        .prize-row .amount { font-weight: 700; }
+
+        .three-container {
+            width: 100%;
+            height: 95px;
+            border-radius: 14px;
+            overflow: hidden;
+            margin-bottom: 10px;
+            background: radial-gradient(circle at center, #0a1530, #050a18);
+            border: 1px solid #2a4a80;
+            position: relative;
+            z-index: 2;
+            box-shadow: inset 0 0 30px rgba(0, 100, 255, 0.15);
+        }
+
+        #three-canvas {
+            display: block;
+            width: 100%;
+            height: 100%;
+        }
+
+        .three-label {
+            position: absolute;
+            bottom: 4px;
+            right: 8px;
+            font-size: 0.55rem;
+            color: #5a8ab8;
+            letter-spacing: 1px;
+            font-weight: 600;
+            text-shadow: 0 1px 3px black;
+        }
+
+        .question-card {
+            background: linear-gradient(145deg, #10254a, #0a1832);
+            border: 2px solid #3d7fd4;
+            border-radius: 18px;
+            padding: 14px 12px;
+            margin-bottom: 10px;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.6), inset 0 0 30px rgba(50, 120, 220, 0.1);
+            position: relative;
+            min-height: 80px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            z-index: 2;
+        }
+
+        .question-number {
+            position: absolute;
+            top: -10px;
+            left: 14px;
+            background: linear-gradient(135deg, #ffb800, #ff8c00);
+            color: #1a1a1a;
+            font-size: 0.6rem;
+            font-weight: 800;
+            padding: 3px 10px;
+            border-radius: 20px;
+            box-shadow: 0 4px 10px rgba(255, 184, 0, 0.4);
+            letter-spacing: 0.5px;
+        }
+
+        .question-text {
+            font-size: 0.85rem;
+            color: #e6f2ff;
+            line-height: 1.5;
+            font-weight: 600;
+            text-align: center;
+            padding: 4px 0;
+            text-shadow: 0 1px 3px black;
+        }
+
+        .answers {
+            display: flex;
+            flex-direction: column;
+            gap: 7px;
+            margin-bottom: 10px;
+            position: relative;
+            z-index: 2;
+        }
+
+        .answer-btn {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            background: linear-gradient(145deg, #142850, #0d1f3d);
+            border: 2px solid #2a4a80;
+            border-radius: 14px;
+            padding: 10px 12px;
+            cursor: pointer;
+            transition: all 0.15s ease;
+            box-shadow: 0 5px 0 #060d1a, 0 4px 12px rgba(0, 0, 0, 0.5);
+            text-align: left;
+            font-family: inherit;
+        }
+
+        .answer-btn:active {
+            transform: translateY(3px);
+            box-shadow: 0 2px 0 #060d1a;
+        }
+
+        .answer-btn .letter {
+            background: linear-gradient(135deg, #ffb800, #ff8c00);
+            color: #1a1a1a;
+            min-width: 26px;
+            height: 26px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 800;
+            font-size: 0.8rem;
+            box-shadow: 0 0 10px rgba(255, 184, 0, 0.5);
+            flex-shrink: 0;
+        }
+
+        .answer-btn .text {
+            color: #d9ecff;
+            font-size: 0.8rem;
+            font-weight: 600;
+            line-height: 1.3;
+        }
+
+        .answer-btn.correct {
+            background: linear-gradient(145deg, #1a5c2e, #0d3d1e);
+            border-color: #4dd47d;
+            box-shadow: 0 5px 0 #062210, 0 0 25px rgba(77, 212, 125, 0.5);
+        }
+
+        .answer-btn.correct .letter { background: linear-gradient(135deg, #4dd47d, #2a9c52); }
+
+        .answer-btn.wrong {
+            background: linear-gradient(145deg, #5c1a1a, #3d0d0d);
+            border-color: #ff5252;
+            box-shadow: 0 5px 0 #220606, 0 0 20px rgba(255, 82, 82, 0.4);
+        }
+
+        .answer-btn.wrong .letter { background: linear-gradient(135deg, #ff5252, #cc0000); }
+        .answer-btn.eliminated { opacity: 0.2; pointer-events: none; filter: grayscale(1); }
+        .answer-btn.selected {
+            border-color: #ffd966;
+            box-shadow: 0 5px 0 #664d00, 0 0 20px rgba(255, 217, 102, 0.6);
+        }
+        .answer-btn:disabled { cursor: not-allowed; }
+
+        .lifelines {
+            display: flex;
+            gap: 7px;
+            margin-bottom: 10px;
+            position: relative;
+            z-index: 2;
+        }
+
+        .lifeline-btn {
+            flex: 1;
+            background: linear-gradient(145deg, #2a1a50, #1a0d3d);
+            border: 2px solid #6a3fd4;
+            border-radius: 14px;
+            padding: 8px 4px;
+            cursor: pointer;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 2px;
+            transition: all 0.15s ease;
+            box-shadow: 0 5px 0 #100628, 0 4px 12px rgba(0, 0, 0, 0.5);
+            font-family: inherit;
+        }
+
+        .lifeline-btn:active:not(:disabled) {
+            transform: translateY(3px);
+            box-shadow: 0 2px 0 #100628;
+        }
+
+        .lifeline-btn:disabled { opacity: 0.3; cursor: not-allowed; filter: grayscale(0.8); }
+        .lifeline-btn .icon { font-size: 1.1rem; filter: drop-shadow(0 0 6px rgba(150, 100, 255, 0.8)); }
+        .lifeline-btn .label {
+            font-size: 0.55rem;
+            color: #c4b0ff;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+        }
+
+        .footer-actions {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 7px;
+            margin-top: 6px;
+            position: relative;
+            z-index: 2;
+        }
+
+        .action-btn {
+            background: linear-gradient(145deg, #1a3a5c, #0d2340);
+            border: 1px solid #3d7fd4;
+            border-radius: 12px;
+            padding: 9px 4px;
+            cursor: pointer;
+            font-family: inherit;
+            font-size: 0.65rem;
+            color: #b8e0ff;
+            font-weight: 700;
+            letter-spacing: 0.3px;
+            box-shadow: 0 4px 0 #060d1a, 0 3px 10px rgba(0, 0, 0, 0.5);
+            transition: all 0.15s ease;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 2px;
+        }
+
+        .action-btn:active { transform: translateY(2px); box-shadow: 0 2px 0 #060d1a; }
+        .action-btn .ico { font-size: 0.95rem; }
+
+        .action-btn.download {
+            background: linear-gradient(145deg, #1a5c3a, #0d3d24);
+            border-color: #4dd47d;
+            color: #b8ffd9;
+        }
+
+        .progress-wrap { margin-bottom: 8px; position: relative; z-index: 2; }
+
+        .progress-bg {
+            background: #0a1228;
+            height: 7px;
+            border-radius: 20px;
+            overflow: hidden;
+            box-shadow: inset 0 2px 6px rgba(0, 0, 0, 0.8);
+            border: 1px solid #1e3a6e;
+        }
+
+        .progress-fill {
+            height: 100%;
+            width: 0%;
+            background: linear-gradient(90deg, #4dd47d, #ffd966, #ff8c00);
+            border-radius: 20px;
+            transition: width 0.4s ease;
+            box-shadow: 0 0 12px rgba(255, 184, 0, 0.6);
+        }
+
+        .modal-overlay {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background: rgba(0, 0, 0, 0.88);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 999;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s;
+            padding: 20px;
+        }
+
+        .modal-overlay.show { opacity: 1; pointer-events: auto; }
+
+        .modal-box {
+            max-width: 460px;
+            width: 100%;
+            background: linear-gradient(145deg, #10254a, #081228);
+            border: 2px solid #ffb800;
+            border-radius: 24px;
+            padding: 22px 18px;
+            text-align: center;
+            box-shadow: 0 0 60px rgba(255, 184, 0, 0.4), 0 20px 50px black;
+            animation: popIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        @keyframes popIn {
+            0% { transform: scale(0.7); opacity: 0; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+
+        .modal-box .emoji {
+            font-size: 3.2rem;
+            margin-bottom: 8px;
+            filter: drop-shadow(0 0 20px rgba(255, 184, 0, 0.8));
+        }
+
+        .modal-box h2 {
+            color: #ffd966;
+            font-size: 1.4rem;
+            margin-bottom: 6px;
+            text-shadow: 0 0 15px rgba(255, 184, 0, 0.6);
+        }
+
+        .modal-box p {
+            color: #b8d4f0;
+            font-size: 0.85rem;
+            margin-bottom: 14px;
+            line-height: 1.5;
+        }
+
+        .modal-box .prize-total {
+            background: linear-gradient(135deg, #ffb800, #ff8c00);
+            color: #1a1a1a;
+            font-weight: 800;
+            font-size: 1.2rem;
+            padding: 9px 18px;
+            border-radius: 40px;
+            display: inline-block;
+            margin-bottom: 16px;
+            box-shadow: 0 0 25px rgba(255, 184, 0, 0.6);
+        }
+
+        .modal-box button {
+            background: linear-gradient(145deg, #2a6f8f, #1a4a6e);
+            border: 2px solid #6bb5db;
+            border-radius: 40px;
+            padding: 11px 28px;
+            color: #fff;
+            font-family: inherit;
+            font-weight: 800;
+            font-size: 0.9rem;
+            cursor: pointer;
+            box-shadow: 0 5px 0 #0a1a24, 0 4px 15px rgba(0, 0, 0, 0.5);
+            transition: all 0.15s;
+            letter-spacing: 1px;
+        }
+
+        .modal-box button:active { transform: translateY(3px); box-shadow: 0 2px 0 #0a1a24; }
+
+        #toast {
+            position: fixed;
+            bottom: 24px;
+            left: 50%;
+            transform: translateX(-50%) translateY(100px);
+            background: linear-gradient(135deg, #1a3a5c, #0d2340);
+            color: #e6f2ff;
+            padding: 11px 22px;
+            border-radius: 50px;
+            font-weight: 700;
+            font-size: 0.8rem;
+            box-shadow: 0 10px 30px black, 0 0 0 1px #3d7fd4;
+            opacity: 0;
+            transition: all 0.35s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            pointer-events: none;
+            z-index: 1000;
+            white-space: nowrap;
+            max-width: 92vw;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        #toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+        .start-screen { text-align: center; padding: 20px 10px; position: relative; z-index: 2; }
+
+        .start-screen .logo {
+            font-size: 3.8rem;
+            margin-bottom: 8px;
+            filter: drop-shadow(0 0 20px rgba(255, 184, 0, 0.7));
+            animation: floatLogo 3s ease-in-out infinite;
+        }
+
+        @keyframes floatLogo {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-8px); }
+        }
+
+        .start-screen h2 {
+            color: #ffd966;
+            font-size: 1.3rem;
+            margin-bottom: 6px;
+            text-shadow: 0 0 15px rgba(255, 184, 0, 0.5);
+        }
+
+        .start-screen p {
+            color: #8ab8e0;
+            font-size: 0.8rem;
+            margin-bottom: 18px;
+            line-height: 1.6;
+        }
+
+        .start-btn {
+            background: linear-gradient(145deg, #ffb800, #ff8c00);
+            color: #1a1a1a;
+            border: none;
+            border-radius: 40px;
+            padding: 13px 36px;
+            font-family: inherit;
+            font-weight: 800;
+            font-size: 0.95rem;
+            cursor: pointer;
+            box-shadow: 0 6px 0 #b37f00, 0 8px 25px rgba(255, 184, 0, 0.5);
+            transition: all 0.15s;
+            letter-spacing: 1px;
+            width: 100%;
+            max-width: 320px;
+        }
+
+        .start-btn:active { transform: translateY(4px); box-shadow: 0 2px 0 #b37f00; }
+
+        .hidden { display: none !important; }
+
+        #confetti-canvas {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            pointer-events: none;
+            z-index: 998;
+        }
+
+        .topic-badge {
+            display: inline-block;
+            background: linear-gradient(135deg, #1e4b80, #0d2a52);
+            border: 1px solid #4d8ec9;
+            border-radius: 20px;
+            padding: 3px 12px;
+            font-size: 0.65rem;
+            color: #9dd0ff;
+            font-weight: 700;
+            letter-spacing: 1px;
+            margin-top: 6px;
+        }
+    </style>
+</head>
+<body>
+    <canvas id="confetti-canvas"></canvas>
+    <div class="app-container" id="app">
+        <!-- ===== START SCREEN ===== -->
+        <div id="startScreen" class="start-screen">
+            <div class="logo">⚡🔋</div>
+            <h2>ELEKTROKIMIA MILLIONAIRE</h2>
+            <div class="topic-badge">SEL ELEKTROKIMIA · KELAS XII</div>
+            <p style="margin-top:14px;">
+                Jawab 15 pertanyaan tentang Sel Elektrokimia untuk memenangkan hadiah utama!<br><br>
+                <b style="color:#ffd966;">📚 3 Stage:</b> Konsep Dasar (1-5) · Sel Volta & Galvani (6-10) · Elektrolisis & Korosi (11-15)<br>
+                <b style="color:#ffd966;">💡 3 Bantuan:</b> 50:50 · Tanya Guru · Ganti Soal
+            </p>
+            <button class="start-btn" id="startBtn">▶ MULAI PERMAINAN</button>
+            <div style="margin-top:14px;">
+                <button class="action-btn download" style="max-width:200px;margin:0 auto;width:100%;" id="startDownloadBtn">
+                    <span class="ico">📥</span> Lihat Data Tersimpan
+                </button>
+            </div>
+        </div>
+
+        <!-- ===== GAME SCREEN ===== -->
+        <div id="gameScreen" class="hidden">
+            <div class="header">
+                <h1>⚡ ELEKTROKIMIA MILLIONAIRE</h1>
+                <div class="sub">SEL ELEKTROKIMIA · KELAS XII</div>
+            </div>
+
+            <div class="top-bar">
+                <div class="info-chip">
+                    <span>STAGE</span>
+                    <b id="stageDisplay">1</b>
+                </div>
+                <div class="info-chip">
+                    <span>SOAL</span>
+                    <b id="questionNumberDisplay">1/15</b>
+                </div>
+                <div class="info-chip">
+                    <span>HADIAH</span>
+                    <b id="currentPrizeDisplay">Rp 100rb</b>
+                </div>
+            </div>
+
+            <div class="prize-ladder" id="prizeLadder"></div>
+
+            <div class="progress-wrap">
+                <div class="progress-bg">
+                    <div class="progress-fill" id="progressFill"></div>
+                </div>
+            </div>
+
+            <div class="three-container">
+                <canvas id="three-canvas"></canvas>
+                <div class="three-label">⚡ SEL ELEKTROKIMIA 3D</div>
+            </div>
+
+            <div class="question-card">
+                <div class="question-number" id="questionBadge">SOAL 1</div>
+                <div class="question-text" id="questionText">Memuat soal...</div>
+            </div>
+
+            <div class="answers" id="answersContainer"></div>
+
+            <div class="lifelines">
+                <button class="lifeline-btn" id="lifeline5050" data-lifeline="5050">
+                    <span class="icon">✂️</span>
+                    <span class="label">50:50</span>
+                </button>
+                <button class="lifeline-btn" id="lifelineAsk" data-lifeline="ask">
+                    <span class="icon">👨‍🏫</span>
+                    <span class="label">TANYA GURU</span>
+                </button>
+                <button class="lifeline-btn" id="lifelineSwitch" data-lifeline="switch">
+                    <span class="icon">🔄</span>
+                    <span class="label">GANTI SOAL</span>
+                </button>
+            </div>
+
+            <div class="footer-actions">
+                <button class="action-btn download" id="downloadBtn">
+                    <span class="ico">⬇️</span> UNDUH JSON
+                </button>
+                <button class="action-btn" id="loadBtn">
+                    <span class="ico">📂</span> MUAT JSON
+                </button>
+                <button class="action-btn" id="quitBtn">
+                    <span class="ico">🚪</span> KELUAR
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="modalOverlay">
+        <div class="modal-box">
+            <div class="emoji" id="modalEmoji">🏆</div>
+            <h2 id="modalTitle">Selamat!</h2>
+            <p id="modalMessage">Anda berhasil!</p>
+            <div class="prize-total" id="modalPrize">Rp 1 Miliar</div>
+            <br>
+            <button id="modalBtn">MAIN LAGI</button>
+        </div>
+    </div>
+
+    <div id="toast">Pesan</div>
+
+    <script>
+        (function() {
+            'use strict';
+
+            // ============================================================
+            // BANK SOAL SEL ELEKTROKIMIA (Kelas XII)
+            // Stage 1: Konsep Dasar (1-5)
+            // Stage 2: Sel Volta & Galvani (6-10)
+            // Stage 3: Elektrolisis & Korosi (11-15)
+            // ============================================================
+            const QUESTIONS = [
+                // ===== STAGE 1: KONSEP DASAR (1-5) =====
+                {
+                    stage: 1,
+                    question: "Sel elektrokimia yang mengubah energi kimia menjadi energi listrik disebut...",
+                    options: ["Sel elektrolisis", "Sel volta", "Sel bahan bakar", "Sel kering"],
+                    correct: 1,
+                    explanation: "Sel volta (galvani) menghasilkan listrik dari reaksi redoks spontan."
+                },
+                {
+                    stage: 1,
+                    question: "Reaksi yang terjadi di katoda pada sel elektrokimia adalah...",
+                    options: ["Oksidasi", "Reduksi", "Netralisasi", "Substitusi"],
+                    correct: 1,
+                    explanation: "Katoda adalah elektroda tempat terjadinya reduksi (penangkapan elektron)."
+                },
+                {
+                    stage: 1,
+                    question: "Dalam sel volta, elektroda yang bermuatan negatif (anoda) mengalami reaksi...",
+                    options: ["Reduksi", "Oksidasi", "Hidrolisis", "Esterifikasi"],
+                    correct: 1,
+                    explanation: "Anoda pada sel volta bermuatan negatif dan terjadi oksidasi."
+                },
+                {
+                    stage: 1,
+                    question: "Satuan yang menyatakan banyaknya muatan listrik 1 mol elektron adalah...",
+                    options: ["1 Coulomb", "1 Faraday", "1 Ampere", "1 Volt"],
+                    correct: 1,
+                    explanation: "1 Faraday = 96.500 Coulomb = muatan 1 mol elektron."
+                },
+                {
+                    stage: 1,
+                    question: "Deret yang menunjukkan urutan kereaktifan logam dalam sel volta disebut...",
+                    options: ["Deret homolog", "Deret volta", "Deret lantanida", "Deret aktivitas"],
+                    correct: 1,
+                    explanation: "Deret volta mengurutkan logam dari yang paling reaktif (kiri) ke paling tidak reaktif (kanan)."
+                },
+                // ===== STAGE 2: SEL VOLTA & GALVANI (6-10) =====
+                {
+                    stage: 2,
+                    question: "Diketahui: Zn²⁺/Zn E° = -0,76 V dan Cu²⁺/Cu E° = +0,34 V. Potensial sel standar (E°sel) untuk sel Daniell adalah...",
+                    options: ["-1,10 V", "+1,10 V", "+0,42 V", "-0,42 V"],
+                    correct: 1,
+                    explanation: "E°sel = E°katoda - E°anoda = 0,34 - (-0,76) = +1,10 V."
+                },
+                {
+                    stage: 2,
+                    question: "Logam yang digunakan sebagai elektroda inert pada sel volta adalah...",
+                    options: ["Zn dan Cu", "Pt dan C", "Fe dan Ni", "Ag dan Au"],
+                    correct: 1,
+                    explanation: "Platina (Pt) dan karbon (C) merupakan elektroda inert yang tidak ikut bereaksi."
+                },
+                {
+                    stage: 2,
+                    question: "Pada sel Daniell (Zn-Cu), logam yang berperan sebagai anoda adalah...",
+                    options: ["Cu", "Zn", "H₂", "Ag"],
+                    correct: 1,
+                    explanation: "Zn memiliki E° lebih negatif, sehingga teroksidasi di anoda."
+                },
+                {
+                    stage: 2,
+                    question: "Jembatan garam pada sel volta berfungsi untuk...",
+                    options: [
+                        "Menghantarkan elektron",
+                        "Menjaga kenetralan muatan larutan",
+                        "Mempercepat oksidasi",
+                        "Mengubah energi listrik menjadi kimia"
+                    ],
+                    correct: 1,
+                    explanation: "Jembatan garam (KCl) menjaga netralitas muatan dengan mengalirkan ion."
+                },
+                {
+                    stage: 2,
+                    question: "Baterai yang menggunakan pasta Zn-MnO₂ dan tidak dapat diisi ulang disebut...",
+                    options: ["Baterai sekunder", "Baterai primer", "Aki", "Sel bahan bakar"],
+                    correct: 1,
+                    explanation: "Baterai primer seperti sel kering (Leclanche) tidak dapat diisi ulang."
+                },
+                // ===== STAGE 3: ELEKTROLISIS & KOROSI (11-15) =====
+                {
+                    stage: 3,
+                    question: "Pada elektrolisis larutan CuSO₄ dengan elektroda Pt, reaksi di anoda adalah...",
+                    options: [
+                        "Cu²⁺ + 2e⁻ → Cu",
+                        "2H₂O → O₂ + 4H⁺ + 4e⁻",
+                        "2H⁺ + 2e⁻ → H₂",
+                        "SO₄²⁻ → SO₂ + O₂"
+                    ],
+                    correct: 1,
+                    explanation: "Di anoda (inert Pt) terjadi oksidasi air menghasilkan gas O₂."
+                },
+                {
+                    stage: 3,
+                    question: "Reaksi yang terjadi di katoda pada elektrolisis larutan NaCl adalah...",
+                    options: [
+                        "2Cl⁻ → Cl₂ + 2e⁻",
+                        "2H₂O + 2e⁻ → H₂ + 2OH⁻",
+                        "Na⁺ + e⁻ → Na",
+                        "2H₂O → O₂ + 4H⁺ + 4e⁻"
+                    ],
+                    correct: 1,
+                    explanation: "Karena E° Na sangat negatif, air yang tereduksi menghasilkan gas H₂."
+                },
+                {
+                    stage: 3,
+                    question: "Hukum Faraday I menyatakan bahwa massa zat yang diendapkan di katoda sebanding dengan...",
+                    options: [
+                        "Waktu elektrolisis saja",
+                        "Jumlah muatan listrik yang mengalir",
+                        "Volume larutan",
+                        "Suhu larutan"
+                    ],
+                    correct: 1,
+                    explanation: "m = (e × i × t) / 96.500, sebanding dengan jumlah muatan (i×t)."
+                },
+                {
+                    stage: 3,
+                    question: "Peristiwa teroksidasinya logam besi oleh oksigen dan air disebut...",
+                    options: ["Elektrolisis", "Korosi", "Reduksi", "Sublimasi"],
+                    correct: 1,
+                    explanation: "Korosi besi (perkaratan) melibatkan oksigen dan air sebagai oksidator."
+                },
+                {
+                    stage: 3,
+                    question: "Cara mencegah korosi dengan melapisi besi menggunakan logam yang lebih aktif (Zn) disebut...",
+                    options: ["Galvanisasi", "Timah", "Kromium", "Oksidasi"],
+                    correct: 0,
+                    explanation: "Galvanisasi adalah pelapisan besi dengan seng (Zn) yang lebih aktif."
+                },
+                {
+                    stage: 3,
+                    question: "Proses elektrolisis untuk melapisi logam dengan logam lain disebut...",
+                    options: ["Pemurnian", "Elektroplating", "Anodisasi", "Reduksi"],
+                    correct: 1,
+                    explanation: "Elektroplating (penyepuhan listrik) melapisi logam dengan logam lain."
+                }
+            ];
+
+            const PRIZES = [
+                "Rp 100rb", "Rp 200rb", "Rp 500rb", "Rp 1jt", "Rp 2jt",
+                "Rp 5jt", "Rp 10jt", "Rp 20jt", "Rp 50jt", "Rp 100jt",
+                "Rp 200jt", "Rp 350jt", "Rp 500jt", "Rp 750jt", "Rp 1 Miliar"
+            ];
+
+            const STORAGE_KEY = 'elektrokimiaMillionaire';
+
+            // ============================================================
+            // STATE
+            // ============================================================
+            let state = {
+                version: 1,
+                currentQuestion: 0,
+                score: 0,
+                stage: 1,
+                lifelines: { fifty: true, ask: true, switch: true },
+                answers: [],
+                gameOver: false,
+                gameWon: false,
+                history: [],
+                lastUpdated: new Date().toISOString()
+            };
+
+            let currentQuestions = [];
+            let answerLocked = false;
+            let selectedAnswer = null;
+            let eliminatedIndices = [];
+
+            const $ = (id) => document.getElementById(id);
+
+            const startScreen = $('startScreen');
+            const gameScreen = $('gameScreen');
+            const stageDisplay = $('stageDisplay');
+            const questionNumberDisplay = $('questionNumberDisplay');
+            const currentPrizeDisplay = $('currentPrizeDisplay');
+            const prizeLadder = $('prizeLadder');
+            const progressFill = $('progressFill');
+            const questionBadge = $('questionBadge');
+            const questionText = $('questionText');
+            const answersContainer = $('answersContainer');
+            const lifeline5050 = $('lifeline5050');
+            const lifelineAsk = $('lifelineAsk');
+            const lifelineSwitch = $('lifelineSwitch');
+            const modalOverlay = $('modalOverlay');
+            const modalEmoji = $('modalEmoji');
+            const modalTitle = $('modalTitle');
+            const modalMessage = $('modalMessage');
+            const modalPrize = $('modalPrize');
+            const modalBtn = $('modalBtn');
+
+            // ============================================================
+            // UTILITIES
+            // ============================================================
+            function showToast(msg, duration = 2000) {
+                const toast = $('toast');
+                toast.textContent = msg;
+                toast.classList.add('show');
+                clearTimeout(toast._timer);
+                toast._timer = setTimeout(() => toast.classList.remove('show'), duration);
+            }
+
+            function saveState() {
+                state.lastUpdated = new Date().toISOString();
+                try { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); }
+                catch (e) { console.warn('Save failed', e); }
+            }
+
+            function loadState() {
+                try {
+                    const raw = localStorage.getItem(STORAGE_KEY);
+                    if (raw) {
+                        const parsed = JSON.parse(raw);
+                        if (parsed && typeof parsed.currentQuestion === 'number') {
+                            state = { ...state, ...parsed };
+                            if (!state.lifelines) state.lifelines = { fifty: true, ask: true, switch: true };
+                            if (!Array.isArray(state.history)) state.history = [];
+                            if (!Array.isArray(state.answers)) state.answers = [];
+                        }
+                    }
+                } catch (e) { console.warn('Load failed', e); }
+            }
+
+            function getStageForQuestion(qIndex) {
+                return Math.floor(qIndex / 5) + 1;
+            }
+
+            function getCurrentPrize() {
+                return PRIZES[Math.min(state.currentQuestion, PRIZES.length - 1)];
+            }
+
+            // ============================================================
+            // THREE.JS — Visualisasi Sel Elektrokimia 3D
+            // ============================================================
+            let threeScene, threeCamera, threeRenderer, cellGroup;
+            let currentVisualType = 0;
+
+            // Konfigurasi visual tiap soal (5 jenis visual elektrokimia berbeda)
+            const VISUAL_CONFIGS = [
+                { name: 'Sel Daniell (Zn-Cu)', type: 'daniell' },
+                { name: 'Elektrolisis Air', type: 'electrolysis' },
+                { name: 'Sel Kering (Baterai)', type: 'drycell' },
+                { name: 'Elektroplating (Cu)', type: 'plating' },
+                { name: 'Korosi Besi', type: 'corrosion' }
+            ];
+
+            function initThree() {
+                const canvas = $('three-canvas');
+                const container = canvas.parentElement;
+                const w = container.clientWidth;
+                const h = container.clientHeight;
+
+                threeScene = new THREE.Scene();
+                threeScene.background = new THREE.Color(0x050a18);
+
+                threeCamera = new THREE.PerspectiveCamera(50, w / h, 0.1, 100);
+                threeCamera.position.set(0, 1.5, 5.5);
+                threeCamera.lookAt(0, 0, 0);
+
+                threeRenderer = new THREE.WebGLRenderer({ canvas, antialias: true });
+                threeRenderer.setSize(w, h, false);
+                threeRenderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+
+                threeScene.add(new THREE.AmbientLight(0x556688, 1.0));
+                const dl = new THREE.DirectionalLight(0xffffff, 1.2);
+                dl.position.set(3, 5, 4);
+                threeScene.add(dl);
+                const pl1 = new THREE.PointLight(0x4488ff, 0.9, 15);
+                pl1.position.set(-3, 2, 3);
+                threeScene.add(pl1);
+                const pl2 = new THREE.PointLight(0xff8844, 0.7, 15);
+                pl2.position.set(3, -2, 3);
+                threeScene.add(pl2);
+
+                // Background stars
+                const starsGeo = new THREE.BufferGeometry();
+                const n = 200;
+                const pos = new Float32Array(n * 3);
+                for (let i = 0; i < n * 3; i++) pos[i] = (Math.random() - 0.5) * 30;
+                starsGeo.setAttribute('position', new THREE.BufferAttribute(pos, 3));
+                threeScene.add(new THREE.Points(starsGeo, new THREE.PointsMaterial({
+                    color: 0x6688cc, size: 0.06, transparent: true, opacity: 0.7
+                })));
+
+                cellGroup = new THREE.Group();
+                threeScene.add(cellGroup);
+
+                buildVisual(0);
+                animateThree();
+
+                window.addEventListener('resize', () => {
+                    const cw = container.clientWidth;
+                    const ch = container.clientHeight;
+                    threeRenderer.setSize(cw, ch, false);
+                    threeCamera.aspect = cw / ch;
+                    threeCamera.updateProjectionMatrix();
+                });
+            }
+
+            function buildVisual(index) {
+                if (!cellGroup) return;
+                while (cellGroup.children.length > 0) {
+                    cellGroup.remove(cellGroup.children[0]);
+                }
+
+                const config = VISUAL_CONFIGS[index % VISUAL_CONFIGS.length];
+                const t = config.type;
+
+                if (t === 'daniell') buildDaniell();
+                else if (t === 'electrolysis') buildElectrolysis();
+                else if (t === 'drycell') buildDryCell();
+                else if (t === 'plating') buildPlating();
+                else if (t === 'corrosion') buildCorrosion();
+
+                currentVisualType = index;
+            }
+
+            function makeBond(p1, p2, color = 0x88aaff) {
+                const points = [new THREE.Vector3(p1[0], p1[1], p1[2]), new THREE.Vector3(p2[0], p2[1], p2[2])];
+                const geo = new THREE.BufferGeometry().setFromPoints(points);
+                const mat = new THREE.LineBasicMaterial({ color, transparent: true, opacity: 0.6 });
+                cellGroup.add(new THREE.Line(geo, mat));
+            }
+
+            // Visual 1: Sel Daniell — dua gelas larutan + jembatan garam
+            function buildDaniell() {
+                // Beaker kiri (ZnSO4)
+                const beaker1 = new THREE.Mesh(
+                    new THREE.CylinderGeometry(1.2, 1.0, 1.8, 24, 1, true),
+                    new THREE.MeshStandardMaterial({ color: 0x3d7fd4, transparent: true, opacity: 0.25, side: THREE.DoubleSide })
+                );
+                beaker1.position.set(-1.4, -0.5, 0);
+                cellGroup.add(beaker1);
+
+                // Beaker kanan (CuSO4)
+                const beaker2 = new THREE.Mesh(
+                    new THREE.CylinderGeometry(1.2, 1.0, 1.8, 24, 1, true),
+                    new THREE.MeshStandardMaterial({ color: 0xff8844, transparent: true, opacity: 0.25, side: THREE.DoubleSide })
+                );
+                beaker2.position.set(1.4, -0.5, 0);
+                cellGroup.add(beaker2);
+
+                // Elektroda Zn (kiri)
+                const zn = new THREE.Mesh(
+                    new THREE.BoxGeometry(0.3, 1.6, 0.3),
+                    new THREE.MeshStandardMaterial({ color: 0x999999, emissive: 0x333333, metalness: 0.8, roughness: 0.3 })
+                );
+                zn.position.set(-1.4, 0.3, 0);
+                cellGroup.add(zn);
+
+                // Elektroda Cu (kanan)
+                const cu = new THREE.Mesh(
+                    new THREE.BoxGeometry(0.3, 1.6, 0.3),
+                    new THREE.MeshStandardMaterial({ color: 0xff6644, emissive: 0x662200, metalness: 0.8, roughness: 0.3 })
+                );
+                cu.position.set(1.4, 0.3, 0);
+                cellGroup.add(cu);
+
+                // Jembatan garam
+                const saltBridge = new THREE.Mesh(
+                    new THREE.CylinderGeometry(0.15, 0.15, 2.0, 12),
+                    new THREE.MeshStandardMaterial({ color: 0xffffcc, emissive: 0x666633 })
+                );
+                saltBridge.rotation.z = Math.PI / 2;
+                saltBridge.position.set(0, 0.9, 0);
+                cellGroup.add(saltBridge);
+
+                // Kabel penghubung
+                makeBond([-1.4, 1.1, 0], [-1.4, 1.6, 0], 0xffcc44);
+                makeBond([-1.4, 1.6, 0], [1.4, 1.6, 0], 0xffcc44);
+                makeBond([1.4, 1.6, 0], [1.4, 1.1, 0], 0xffcc44);
+
+                // Volt meter (kotak kecil di atas)
+                const vm = new THREE.Mesh(
+                    new THREE.BoxGeometry(0.6, 0.4, 0.2),
+                    new THREE.MeshStandardMaterial({ color: 0x222222, emissive: 0x33ff66, emissiveIntensity: 0.6 })
+                );
+                vm.position.set(0, 1.6, 0);
+                cellGroup.add(vm);
+            }
+
+            // Visual 2: Elektrolisis Air
+            function buildElectrolysis() {
+                // Wadah elektrolisis
+                const container = new THREE.Mesh(
+                    new THREE.BoxGeometry(3.0, 1.8, 1.2),
+                    new THREE.MeshStandardMaterial({ color: 0x3d7fd4, transparent: true, opacity: 0.2, side: THREE.DoubleSide })
+                );
+                container.position.set(0, -0.3, 0);
+                cellGroup.add(container);
+
+                // Elektroda kiri (katoda -)
+                const cathode = new THREE.Mesh(
+                    new THREE.BoxGeometry(0.2, 1.6, 0.2),
+                    new THREE.MeshStandardMaterial({ color: 0xcccccc, metalness: 0.7, roughness: 0.3 })
+                );
+                cathode.position.set(-0.9, 0, 0);
+                cellGroup.add(cathode);
+
+                // Elektroda kanan (anoda +)
+                const anode = new THREE.Mesh(
+                    new THREE.BoxGeometry(0.2, 1.6, 0.2),
+                    new THREE.MeshStandardMaterial({ color: 0xcccccc, metalness: 0.7, roughness: 0.3 })
+                );
+                anode.position.set(0.9, 0, 0);
+                cellGroup.add(anode);
+
+                // Gelembung gas H2 (kiri)
+                for (let i = 0; i < 5; i++) {
+                    const b = new THREE.Mesh(
+                        new THREE.SphereGeometry(0.08 + Math.random() * 0.05, 8, 8),
+                        new THREE.MeshStandardMaterial({ color: 0xaaddff, emissive: 0x4488ff, emissiveIntensity: 0.8, transparent: true, opacity: 0.8 })
+                    );
+                    b.position.set(-0.9 + (Math.random() - 0.5) * 0.3, 0.3 + i * 0.15, (Math.random() - 0.5) * 0.3);
+                    b.userData.floatPhase = Math.random() * Math.PI * 2;
+                    b.userData.floatBase = b.position.y;
+                    cellGroup.add(b);
+                }
+
+                // Gelembung gas O2 (kanan)
+                for (let i = 0; i < 5; i++) {
+                    const b = new THREE.Mesh(
+                        new THREE.SphereGeometry(0.08 + Math.random() * 0.05, 8, 8),
+                        new THREE.MeshStandardMaterial({ color: 0xffaa66, emissive: 0xff6622, emissiveIntensity: 0.8, transparent: true, opacity: 0.8 })
+                    );
+                    b.position.set(0.9 + (Math.random() - 0.5) * 0.3, 0.3 + i * 0.15, (Math.random() - 0.5) * 0.3);
+                    b.userData.floatPhase = Math.random() * Math.PI * 2;
+                    b.userData.floatBase = b.position.y;
+                    cellGroup.add(b);
+                }
+
+                // Baterai
+                const battery = new THREE.Mesh(
+                    new THREE.BoxGeometry(0.7, 0.4, 0.3),
+                    new THREE.MeshStandardMaterial({ color: 0x222222, emissive: 0x33ff66, emissiveIntensity: 0.4 })
+                );
+                battery.position.set(0, 1.3, 0);
+                cellGroup.add(battery);
+
+                makeBond([-0.9, 0.8, 0], [-0.9, 1.3, 0], 0x44ff44);
+                makeBond([-0.9, 1.3, 0], [0.9, 1.3, 0], 0x44ff44);
+                makeBond([0.9, 1.3, 0], [0.9, 0.8, 0], 0x44ff44);
+            }
+
+            // Visual 3: Sel Kering (Baterai)
+            function buildDryCell() {
+                // Silinder luar (Zn)
+                const outer = new THREE.Mesh(
+                    new THREE.CylinderGeometry(0.8, 0.8, 2.2, 24, 1, true),
+                    new THREE.MeshStandardMaterial({ color: 0x999999, metalness: 0.6, roughness: 0.4, transparent: true, opacity: 0.6, side: THREE.DoubleSide })
+                );
+                outer.position.set(0, 0, 0);
+                cellGroup.add(outer);
+
+                // Pasta dalam (MnO2 + C)
+                const paste = new THREE.Mesh(
+                    new THREE.CylinderGeometry(0.6, 0.6, 1.8, 20),
+                    new THREE.MeshStandardMaterial({ color: 0x333333, emissive: 0x111111 })
+                );
+                paste.position.set(0, 0, 0);
+                cellGroup.add(paste);
+
+                // Batang karbon (katoda)
+                const rod = new THREE.Mesh(
+                    new THREE.CylinderGeometry(0.15, 0.15, 2.4, 12),
+                    new THREE.MeshStandardMaterial({ color: 0x222222, emissive: 0x000000, metalness: 0.5 })
+                );
+                rod.position.set(0, 0, 0);
+                cellGroup.add(rod);
+
+                // Tutup atas (+)
+                const cap = new THREE.Mesh(
+                    new THREE.CylinderGeometry(0.25, 0.25, 0.15, 12),
+                    new THREE.MeshStandardMaterial({ color: 0xffcc00, emissive: 0xaa8800, emissiveIntensity: 0.6 })
+                );
+                cap.position.set(0, 1.25, 0);
+                cellGroup.add(cap);
+
+                // Bawah (-)
+                const bottom = new THREE.Mesh(
+                    new THREE.CylinderGeometry(0.85, 0.85, 0.1, 20),
+                    new THREE.MeshStandardMaterial({ color: 0x888888, metalness: 0.8 })
+                );
+                bottom.position.set(0, -1.15, 0);
+                cellGroup.add(bottom);
+            }
+
+            // Visual 4: Elektroplating
+            function buildPlating() {
+                // Wadah larutan CuSO4
+                const tank = new THREE.Mesh(
+                    new THREE.BoxGeometry(3.0, 1.6, 1.2),
+                    new THREE.MeshStandardMaterial({ color: 0x4488dd, transparent: true, opacity: 0.2, side: THREE.DoubleSide })
+                );
+                tank.position.set(0, -0.3, 0);
+                cellGroup.add(tank);
+
+                // Anoda Cu (kanan)
+                const anodeCu = new THREE.Mesh(
+                    new THREE.BoxGeometry(0.3, 1.4, 0.3),
+                    new THREE.MeshStandardMaterial({ color: 0xff6644, emissive: 0x662200, metalness: 0.8, roughness: 0.3 })
+                );
+                anodeCu.position.set(0.9, 0.1, 0);
+                cellGroup.add(anodeCu);
+
+                // Katoda (objek yang dilapisi) — kiri
+                const obj = new THREE.Mesh(
+                    new THREE.BoxGeometry(0.4, 1.2, 0.4),
+                    new THREE.MeshStandardMaterial({ color: 0xaaaaaa, metalness: 0.7, roughness: 0.4 })
+                );
+                obj.position.set(-0.9, 0.1, 0);
+                cellGroup.add(obj);
+
+                // Lapisan tipis Cu pada objek (berkedip)
+                const coating = new THREE.Mesh(
+                    new THREE.BoxGeometry(0.45, 1.25, 0.45),
+                    new THREE.MeshStandardMaterial({ color: 0xff6644, emissive: 0xff3300, emissiveIntensity: 0.5, transparent: true, opacity: 0.4 })
+                );
+                coating.position.set(-0.9, 0.1, 0);
+                coating.userData.isCoating = true;
+                cellGroup.add(coating);
+
+                // Ion Cu²⁺ bergerak (partikel kecil)
+                for (let i = 0; i < 6; i++) {
+                    const ion = new THREE.Mesh(
+                        new THREE.SphereGeometry(0.07, 8, 8),
+                        new THREE.MeshStandardMaterial({ color: 0xff8866, emissive: 0xff4422, emissiveIntensity: 0.9 })
+                    );
+                    ion.position.set((Math.random() - 0.5) * 1.6, (Math.random() - 0.5) * 1.0, (Math.random() - 0.5) * 0.6);
+                    ion.userData.isIon = true;
+                    ion.userData.speed = 0.3 + Math.random() * 0.4;
+                    ion.userData.phase = Math.random() * Math.PI * 2;
+                    cellGroup.add(ion);
+                }
+
+                // Baterai
+                const battery = new THREE.Mesh(
+                    new THREE.BoxGeometry(0.7, 0.4, 0.3),
+                    new THREE.MeshStandardMaterial({ color: 0x222222, emissive: 0x33ff66, emissiveIntensity: 0.4 })
+                );
+                battery.position.set(0, 1.2, 0);
+                cellGroup.add(battery);
+
+                makeBond([-0.9, 0.7, 0], [-0.9, 1.2, 0], 0x44ff44);
+                makeBond([-0.9, 1.2, 0], [0.9, 1.2, 0], 0x44ff44);
+                makeBond([0.9, 1.2, 0], [0.9, 0.7, 0], 0x44ff44);
+            }
+
+            // Visual 5: Korosi Besi
+            function buildCorrosion() {
+                // Pelat besi
+                const iron = new THREE.Mesh(
+                    new THREE.BoxGeometry(2.0, 1.2, 0.3),
+                    new THREE.MeshStandardMaterial({ color: 0x888888, metalness: 0.8, roughness: 0.5 })
+                );
+                iron.position.set(0, 0, 0);
+                cellGroup.add(iron);
+
+                // Bercak karat (Fe2O3) — beberapa patch oranye
+                for (let i = 0; i < 8; i++) {
+                    const rust = new THREE.Mesh(
+                        new THREE.SphereGeometry(0.1 + Math.random() * 0.1, 8, 8),
+                        new THREE.MeshStandardMaterial({ color: 0xaa4422, emissive: 0x552200, roughness: 0.9 })
+                    );
+                    rust.position.set(
+                        (Math.random() - 0.5) * 1.6,
+                        (Math.random() - 0.5) * 1.0,
+                        0.18
+                    );
+                    rust.userData.isRust = true;
+                    rust.userData.pulsePhase = Math.random() * Math.PI * 2;
+                    cellGroup.add(rust);
+                }
+
+                // Tetesan air
+                for (let i = 0; i < 4; i++) {
+                    const drop = new THREE.Mesh(
+                        new THREE.SphereGeometry(0.12, 12, 12),
+                        new THREE.MeshStandardMaterial({ color: 0x66bbff, emissive: 0x225588, emissiveIntensity: 0.5, transparent: true, opacity: 0.7 })
+                    );
+                    drop.position.set(
+                        (Math.random() - 0.5) * 2.0,
+                        0.9 + i * 0.15,
+                        0.2
+                    );
+                    drop.userData.isDrop = true;
+                    drop.userData.baseY = drop.position.y;
+                    drop.userData.phase = Math.random() * Math.PI * 2;
+                    cellGroup.add(drop);
+                }
+
+                // Oksigen (O2) di sekitar
+                for (let i = 0; i < 5; i++) {
+                    const o2 = new THREE.Mesh(
+                        new THREE.SphereGeometry(0.08, 8, 8),
+                        new THREE.MeshStandardMaterial({ color: 0xff4444, emissive: 0xaa1111, emissiveIntensity: 0.8 })
+                    );
+                    o2.position.set(
+                        (Math.random() - 0.5) * 2.5,
+                        (Math.random() - 0.5) * 1.5,
+                        (Math.random() - 0.5) * 1.0
+                    );
+                    o2.userData.isO2 = true;
+                    o2.userData.phase = Math.random() * Math.PI * 2;
+                    cellGroup.add(o2);
+                }
+            }
+
+            let threeClock = new THREE.Clock();
+            function animateThree() {
+                requestAnimationFrame(animateThree);
+                const t = threeClock.getElapsedTime();
+                if (cellGroup) {
+                    cellGroup.rotation.y = Math.sin(t * 0.3) * 0.2;
+                    // Animasi elemen-elemen khusus
+                    cellGroup.children.forEach(obj => {
+                        if (obj.userData.isIon) {
+                            obj.position.x += Math.sin(t * obj.userData.speed + obj.userData.phase) * 0.01;
+                            obj.position.y += Math.cos(t * obj.userData.speed + obj.userData.phase) * 0.01;
+                        }
+                        if (obj.userData.isCoating) {
+                            obj.material.opacity = 0.3 + Math.sin(t * 3) * 0.2;
+                        }
+                        if (obj.userData.isRust) {
+                            obj.scale.setScalar(1 + Math.sin(t * 2 + obj.userData.pulsePhase) * 0.1);
+                        }
+                        if (obj.userData.isDrop) {
+                            obj.position.y = obj.userData.baseY + Math.sin(t * 2 + obj.userData.phase) * 0.08;
+                        }
+                        if (obj.userData.isO2) {
+                            obj.position.x += Math.sin(t + obj.userData.phase) * 0.005;
+                            obj.position.y += Math.cos(t + obj.userData.phase) * 0.005;
+                        }
+                        if (obj.userData.floatPhase !== undefined) {
+                            obj.position.y = obj.userData.floatBase + Math.sin(t * 2 + obj.userData.floatPhase) * 0.15;
+                        }
+                    });
+                }
+                threeRenderer.render(threeScene, threeCamera);
+            }
+
+            // ============================================================
+            // CONFETTI
+            // ============================================================
+            const confettiCanvas = $('confetti-canvas');
+            const confettiCtx = confettiCanvas.getContext('2d');
+            let confettiPieces = [];
+            let confettiActive = false;
+
+            function resizeConfetti() {
+                confettiCanvas.width = window.innerWidth;
+                confettiCanvas.height = window.innerHeight;
+            }
+            window.addEventListener('resize', resizeConfetti);
+            resizeConfetti();
+
+            function launchConfetti() {
+                confettiPieces = [];
+                for (let i = 0; i < 120; i++) {
+                    confettiPieces.push({
+                        x: Math.random() * confettiCanvas.width,
+                        y: -20 - Math.random() * 200,
+                        w: 6 + Math.random() * 6,
+                        h: 8 + Math.random() * 8,
+                        vx: (Math.random() - 0.5) * 3,
+                        vy: 2 + Math.random() * 4,
+                        rot: Math.random() * 360,
+                        vrot: (Math.random() - 0.5) * 10,
+                        color: ['#ffd966','#ff8c00','#4dd47d','#4fa6ff','#ff5252','#c4b0ff'][Math.floor(Math.random()*6)]
+                    });
+                }
+                if (!confettiActive) {
+                    confettiActive = true;
+                    animateConfetti();
+                }
+            }
+
+            function animateConfetti() {
+                confettiCtx.clearRect(0, 0, confettiCanvas.width, confettiCanvas.height);
+                let alive = false;
+                confettiPieces.forEach(p => {
+                    if (p.y < confettiCanvas.height + 30) {
+                        alive = true;
+                        p.x += p.vx;
+                        p.y += p.vy;
+                        p.vy += 0.08;
+                        p.rot += p.vrot;
+                        confettiCtx.save();
+                        confettiCtx.translate(p.x, p.y);
+                        confettiCtx.rotate(p.rot * Math.PI / 180);
+                        confettiCtx.fillStyle = p.color;
+                        confettiCtx.fillRect(-p.w/2, -p.h/2, p.w, p.h);
+                        confettiCtx.restore();
+                    }
+                });
+                if (alive) requestAnimationFrame(animateConfetti);
+                else { confettiActive = false; confettiCtx.clearRect(0, 0, confettiCanvas.width, confettiCanvas.height); }
+            }
+
+            // ============================================================
+            // GAME LOGIC
+            // ============================================================
+            function startGame(fresh = true) {
+                if (fresh) {
+                    state = {
+                        version: 1,
+                        currentQuestion: 0,
+                        score: 0,
+                        stage: 1,
+                        lifelines: { fifty: true, ask: true, switch: true },
+                        answers: [],
+                        gameOver: false,
+                        gameWon: false,
+                        history: [],
+                        lastUpdated: new Date().toISOString()
+                    };
+                }
+
+                currentQuestions = prepareQuestions();
+                answerLocked = false;
+                selectedAnswer = null;
+                eliminatedIndices = [];
+
+                startScreen.classList.add('hidden');
+                gameScreen.classList.remove('hidden');
+
+                renderQuestion();
+                renderPrizeLadder();
+                updateTopBar();
+                initThree();
+                resetLifelines();
+                saveState();
+            }
+
+            function prepareQuestions() {
+                const byStage = { 1: [], 2: [], 3: [] };
+                QUESTIONS.forEach(q => { if (byStage[q.stage]) byStage[q.stage].push(q); });
+                const shuffle = (arr) => arr.sort(() => Math.random() - 0.5);
+                return [
+                    ...shuffle(byStage[1]).slice(0, 5),
+                    ...shuffle(byStage[2]).slice(0, 5),
+                    ...shuffle(byStage[3]).slice(0, 5)
+                ];
+            }
+
+            function renderQuestion() {
+                const qIndex = state.currentQuestion;
+                if (qIndex >= currentQuestions.length) { endGame(true); return; }
+                const q = currentQuestions[qIndex];
+                const stage = getStageForQuestion(qIndex);
+
+                stageDisplay.textContent = stage;
+                questionNumberDisplay.textContent = `${qIndex + 1}/15`;
+                currentPrizeDisplay.textContent = getCurrentPrize();
+                questionBadge.textContent = `SOAL ${qIndex + 1}`;
+                questionText.textContent = q.question;
+
+                progressFill.style.width = ((qIndex) / 15) * 100 + '%';
+
+                answersContainer.innerHTML = '';
+                const letters = ['A', 'B', 'C', 'D'];
+                q.options.forEach((opt, i) => {
+                    const btn = document.createElement('button');
+                    btn.className = 'answer-btn';
+                    btn.dataset.index = i;
+                    if (eliminatedIndices.includes(i)) btn.classList.add('eliminated');
+                    btn.innerHTML = `
+                        <span class="letter">${letters[i]}</span>
+                        <span class="text">${opt}</span>
+                    `;
+                    btn.addEventListener('click', () => selectAnswer(i));
+                    answersContainer.appendChild(btn);
+                });
+
+                renderPrizeLadder();
+                buildVisual(qIndex % VISUAL_CONFIGS.length);
+
+                answerLocked = false;
+                selectedAnswer = null;
+            }
+
+            function selectAnswer(index) {
+                if (answerLocked) return;
+                if (selectedAnswer === index) return;
+                selectedAnswer = index;
+
+                const buttons = answersContainer.querySelectorAll('.answer-btn');
+                buttons.forEach(b => b.classList.remove('selected'));
+                if (buttons[index]) buttons[index].classList.add('selected');
+
+                confirmAnswer(index);
+            }
+
+            function confirmAnswer(index) {
+                if (answerLocked) return;
+                answerLocked = true;
+
+                const qIndex = state.currentQuestion;
+                const q = currentQuestions[qIndex];
+                const isCorrect = index === q.correct;
+
+                const buttons = answersContainer.querySelectorAll('.answer-btn');
+                buttons.forEach((b, i) => {
+                    b.disabled = true;
+                    if (i === q.correct) b.classList.add('correct');
+                    if (i === index && !isCorrect) b.classList.add('wrong');
+                });
+
+                state.answers.push({
+                    questionIndex: qIndex,
+                    selected: index,
+                    correct: isCorrect,
+                    question: q.question
+                });
+
+                if (isCorrect) {
+                    state.score += 1;
+                    state.history.push({ q: qIndex, status: 'correct', timestamp: new Date().toISOString() });
+                    showToast('✅ Benar! ' + (q.explanation || ''), 2500);
+                    saveState();
+
+                    setTimeout(() => {
+                        state.currentQuestion += 1;
+                        state.stage = getStageForQuestion(state.currentQuestion);
+                        saveState();
+
+                        if (state.currentQuestion >= 15) endGame(true);
+                        else {
+                            eliminatedIndices = [];
+                            renderQuestion();
+                            updateTopBar();
+                        }
+                    }, 1800);
+                } else {
+                    state.history.push({ q: qIndex, status: 'wrong', timestamp: new Date().toISOString() });
+                    state.gameOver = true;
+                    saveState();
+                    showToast('❌ Jawaban salah!', 1500);
+                    setTimeout(() => endGame(false), 1800);
+                }
+            }
+
+            function renderPrizeLadder() {
+                prizeLadder.innerHTML = '';
+                for (let i = PRIZES.length - 1; i >= 0; i--) {
+                    const row = document.createElement('div');
+                    row.className = 'prize-row';
+                    if (i === state.currentQuestion) row.classList.add('current');
+                    if (i < state.currentQuestion) row.classList.add('cleared');
+                    row.innerHTML = `<span class="num">${i + 1}</span><span class="amount">${PRIZES[i]}</span>`;
+                    prizeLadder.appendChild(row);
+                }
+            }
+
+            function updateTopBar() {
+                stageDisplay.textContent = getStageForQuestion(state.currentQuestion);
+                questionNumberDisplay.textContent = `${Math.min(state.currentQuestion + 1, 15)}/15`;
+                currentPrizeDisplay.textContent = getCurrentPrize();
+            }
+
+            function resetLifelines() {
+                state.lifelines = { fifty: true, ask: true, switch: true };
+                [lifeline5050, lifelineAsk, lifelineSwitch].forEach(b => {
+                    b.disabled = false;
+                    b.style.opacity = '1';
+                });
+            }
+
+            // ============================================================
+            // LIFELINES
+            // ============================================================
+            function use5050() {
+                if (!state.lifelines.fifty || answerLocked) return;
+                const q = currentQuestions[state.currentQuestion];
+                const wrongIndices = [];
+                q.options.forEach((_, i) => { if (i !== q.correct) wrongIndices.push(i); });
+                const toEliminate = wrongIndices.sort(() => Math.random() - 0.5).slice(0, 2);
+                toEliminate.forEach(i => eliminatedIndices.push(i));
+                const buttons = answersContainer.querySelectorAll('.answer-btn');
+                toEliminate.forEach(i => { if (buttons[i]) buttons[i].classList.add('eliminated'); });
+                state.lifelines.fifty = false;
+                lifeline5050.disabled = true;
+                lifeline5050.style.opacity = '0.3';
+                saveState();
+                showToast('✂️ 50:50 digunakan! 2 jawaban salah dihilangkan.', 2000);
+            }
+
+            function useAsk() {
+                if (!state.lifelines.ask || answerLocked) return;
+                const q = currentQuestions[state.currentQuestion];
+                const isCorrectHint = Math.random() < 0.8;
+                let suggested;
+                if (isCorrectHint) suggested = q.correct;
+                else {
+                    const wrongs = q.options.map((_, i) => i).filter(i => i !== q.correct);
+                    suggested = wrongs[Math.floor(Math.random() * wrongs.length)];
+                }
+                const letters = ['A', 'B', 'C', 'D'];
+                showToast(`👨‍🏫 Guru menyarankan: ${letters[suggested]}. ${q.options[suggested]}`, 3000);
+                state.lifelines.ask = false;
+                lifelineAsk.disabled = true;
+                lifelineAsk.style.opacity = '0.3';
+                saveState();
+            }
+
+            function useSwitch() {
+                if (!state.lifelines.switch || answerLocked) return;
+                const qIndex = state.currentQuestion;
+                const stage = getStageForQuestion(qIndex);
+                const usedTexts = currentQuestions.map(q => q.question);
+                const candidates = QUESTIONS.filter(q => q.stage === stage && !usedTexts.includes(q.question));
+                if (candidates.length === 0) {
+                    showToast('⚠️ Tidak ada soal pengganti tersedia.', 2000);
+                    return;
+                }
+                const replacement = candidates[Math.floor(Math.random() * candidates.length)];
+                currentQuestions[qIndex] = replacement;
+                eliminatedIndices = [];
+                state.lifelines.switch = false;
+                lifelineSwitch.disabled = true;
+                lifelineSwitch.style.opacity = '0.3';
+                saveState();
+                showToast('🔄 Soal diganti!', 1500);
+                renderQuestion();
+            }
+
+            // ============================================================
+            // END GAME
+            // ============================================================
+            function endGame(won) {
+                state.gameOver = true;
+                state.gameWon = won;
+                saveState();
+
+                const prizeIndex = won ? 14 : Math.max(0, state.currentQuestion - 1);
+                const finalPrize = PRIZES[prizeIndex] || 'Rp 0';
+
+                if (won) {
+                    modalEmoji.textContent = '🏆';
+                    modalTitle.textContent = 'SELAMAT!';
+                    modalMessage.textContent = 'Anda berhasil menjawab semua 15 soal Sel Elektrokimia dengan benar!';
+                    modalPrize.textContent = finalPrize;
+                    launchConfetti();
+                    setTimeout(() => launchConfetti(), 800);
+                } else {
+                    modalEmoji.textContent = '😢';
+                    modalTitle.textContent = 'GAME OVER';
+                    modalMessage.textContent = `Anda berhenti di soal ${state.currentQuestion + 1}. Terus belajar Elektrokimia ya!`;
+                    modalPrize.textContent = finalPrize;
+                }
+
+                modalOverlay.classList.add('show');
+            }
+
+            function resetGame() {
+                modalOverlay.classList.remove('show');
+                gameScreen.classList.add('hidden');
+                startScreen.classList.remove('hidden');
+                state = {
+                    version: 1,
+                    currentQuestion: 0,
+                    score: 0,
+                    stage: 1,
+                    lifelines: { fifty: true, ask: true, switch: true },
+                    answers: [],
+                    gameOver: false,
+                    gameWon: false,
+                    history: [],
+                    lastUpdated: new Date().toISOString()
+                };
+                saveState();
+            }
+
+            // ============================================================
+            // JSON EXPORT / IMPORT
+            // ============================================================
+            function downloadJSON() {
+                const exportData = {
+                    ...state,
+                    exportedAt: new Date().toISOString(),
+                    topic: 'Sel Elektrokimia',
+                    totalQuestions: QUESTIONS.length,
+                    prizes: PRIZES
+                };
+                const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: 'application/json' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `elektrokimia-millionaire-${new Date().toISOString().slice(0,10)}.json`;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+                showToast('📥 File JSON berhasil diunduh!', 2000);
+            }
+
+            function loadJSON() {
+                const input = document.createElement('input');
+                input.type = 'file';
+                input.accept = 'application/json,.json';
+                input.onchange = (e) => {
+                    const file = e.target.files[0];
+                    if (!file) return;
+                    const reader = new FileReader();
+                    reader.onload = (ev) => {
+                        try {
+                            const loaded = JSON.parse(ev.target.result);
+                            if (typeof loaded.currentQuestion !== 'number') throw new Error('Format tidak valid');
+                            state = {
+                                version: loaded.version || 1,
+                                currentQuestion: loaded.currentQuestion || 0,
+                                score: loaded.score || 0,
+                                stage: loaded.stage || 1,
+                                lifelines: loaded.lifelines || { fifty: true, ask: true, switch: true },
+                                answers: Array.isArray(loaded.answers) ? loaded.answers : [],
+                                gameOver: !!loaded.gameOver,
+                                gameWon: !!loaded.gameWon,
+                                history: Array.isArray(loaded.history) ? loaded.history : [],
+                                lastUpdated: loaded.lastUpdated || new Date().toISOString()
+                            };
+                            currentQuestions = prepareQuestions();
+                            eliminatedIndices = [];
+                            answerLocked = false;
+                            selectedAnswer = null;
+
+                            if (state.gameOver) {
+                                showToast('📂 Data dimuat. Permainan sudah selesai.', 2500);
+                                startScreen.classList.add('hidden');
+                                gameScreen.classList.remove('hidden');
+                                renderQuestion();
+                                renderPrizeLadder();
+                                updateTopBar();
+                                setTimeout(() => {
+                                    if (state.gameWon) {
+                                        modalEmoji.textContent = '🏆';
+                                        modalTitle.textContent = 'SELAMAT!';
+                                        modalMessage.textContent = 'Data menunjukkan Anda telah memenangkan hadiah utama!';
+                                        modalPrize.textContent = PRIZES[14];
+                                    } else {
+                                        modalEmoji.textContent = '😢';
+                                        modalTitle.textContent = 'GAME OVER';
+                                        modalMessage.textContent = `Data dimuat. Anda berhenti di soal ${state.currentQuestion + 1}.`;
+                                        modalPrize.textContent = PRIZES[Math.max(0, state.currentQuestion - 1)];
+                                    }
+                                    modalOverlay.classList.add('show');
+                                }, 500);
+                            } else {
+                                startGame(false);
+                                showToast('📂 Data berhasil dimuat! Melanjutkan permainan.', 2000);
+                            }
+                        } catch (err) {
+                            showToast('❌ Gagal memuat file JSON', 2000);
+                            console.error(err);
+                        }
+                    };
+                    reader.readAsText(file);
+                };
+                input.click();
+            }
+
+            // ============================================================
+            // EVENT LISTENERS
+            // ============================================================
+            document.addEventListener('DOMContentLoaded', () => {
+                loadState();
+
+                $('startBtn').addEventListener('click', () => startGame(true));
+                $('startDownloadBtn').addEventListener('click', downloadJSON);
+                $('downloadBtn').addEventListener('click', downloadJSON);
+                $('loadBtn').addEventListener('click', loadJSON);
+                $('quitBtn').addEventListener('click', () => {
+                    if (confirm('Keluar ke menu utama? Progres akan disimpan.')) {
+                        saveState();
+                        gameScreen.classList.add('hidden');
+                        startScreen.classList.remove('hidden');
+                    }
+                });
+
+                lifeline5050.addEventListener('click', use5050);
+                lifelineAsk.addEventListener('click', useAsk);
+                lifelineSwitch.addEventListener('click', useSwitch);
+
+                modalBtn.addEventListener('click', resetGame);
+
+                if (state.currentQuestion > 0 && !state.gameOver && state.history.length > 0) {
+                    const startBtn = $('startBtn');
+                    startBtn.textContent = '▶ LANJUTKAN PERMAINAN';
+                    const newGameBtn = document.createElement('button');
+                    newGameBtn.className = 'start-btn';
+                    newGameBtn.style.marginTop = '10px';
+                    newGameBtn.style.background = 'linear-gradient(145deg, #1a5c3a, #0d3d24)';
+                    newGameBtn.style.color = '#b8ffd9';
+                    newGameBtn.style.boxShadow = '0 6px 0 #062210, 0 8px 25px rgba(77, 212, 125, 0.3)';
+                    newGameBtn.textContent = '🔄 MULAI BARU';
+                    newGameBtn.addEventListener('click', () => {
+                        state = {
+                            version: 1, currentQuestion: 0, score: 0, stage: 1,
+                            lifelines: { fifty: true, ask: true, switch: true },
+                            answers: [], gameOver: false, gameWon: false, history: [],
+                            lastUpdated: new Date().toISOString()
+                        };
+                        saveState();
+                        startGame(true);
+                    });
+                    startBtn.parentNode.insertBefore(newGameBtn, startBtn.nextSibling);
+                }
+            });
+
+        })();
+    </script>
+</body>
+</html>
